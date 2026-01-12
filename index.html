@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>カロリー計算機</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+    }
+    input, select, button {
+      padding: 10px;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+    button {
+      width: 100%;
+      margin: 5px 0;
+    }
+    .food-row {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr 0.8fr 40px;
+      gap: 6px;
+      margin-bottom: 6px;
+      align-items: center;
+    }
+    .search-box {
+      grid-column: 1 / -1;
+      font-size: 14px;
+    }
+    .cal-display {
+      background: #eee;
+      font-size: 14px;
+      text-align: right;
+    }
+    .delete-btn {
+      background: #ff6666;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .custom-food {
+      background: #f0f8ff;
+      padding: 10px;
+      border-radius: 6px;
+      margin-top: 10px;
+      display: none;
+    }
+    .result {
+      margin-top: 15px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>カロリー計算機</h2>
+
+  <label>一回の総カロリー</label>
+  <input type="number" id="totalCalories" value="150" style="width:100%">
+
+  <h3>食事内容</h3>
+  <div id="foods"></div>
+
+  <button onclick="addFood()">＋ 食材を追加</button>
+  <button onclick="toggleCustomFood()">食材がリストにない場合はこちら</button>
+
+  <div class="custom-food" id="customFoodArea">
+    <h3>食材を追加</h3>
+    <input type="text" id="customName" placeholder="食材名">
+    <input type="number" id="customCal" placeholder="1gあたりのカロリー" step="0.01">
+    <button onclick="addCustomFood()">この食材を追加</button>
+  </div>
+
+  <button onclick="calculate()">計算</button>
+
+  <div class="result">
+    残りカロリー：<span id="result">0</span> kcal
+  </div>
+</div>
+
+<!-- ✅ ① foods.js を先に読み込む -->
+<script src="foods.js"></script>
+
+<!-- ✅ ② メインロジック -->
+<script>
+  // foods.js の defaultFoods を参照
+  let foodMaster =
+    JSON.parse(localStorage.getItem("foodMaster")) || { ...defaultFoods };
+
+  addFood();
+
+  function addFood() {
+    const foodsDiv = document.getElementById("foods");
+    const row = document.createElement("div");
+    row.className = "food-row";
+
+    const search = document.createElement("input");
+    search.type = "text";
+    search.placeholder = "食材検索";
+    search.className = "search-box";
+
+    const select = document.createElement("select");
+    updateFoodOptions(select);
+
+    const weight = document.createElement("input");
+    weight.type = "number";
+    weight.placeholder = "量(g)";
+
+    const cal = document.createElement("input");
+    cal.type = "number";
+    cal.placeholder = "kcal";
+    cal.className = "cal-display";
+    cal.disabled = true;
+
+    const del = document.createElement("button");
+    del.textContent = "×";
+    del.className = "delete-btn";
+    del.onclick = () => row.remove();
+
+    search.oninput = () => updateFoodOptions(select, search.value);
+
+    weight.oninput = () => {
+      const gram = Number(weight.value);
+      cal.value = gram > 0
+        ? Math.round(foodMaster[select.value] * gram)
+        : "";
+    };
+
+    row.appendChild(search);
+    row.appendChild(select);
+    row.appendChild(weight);
+    row.appendChild(cal);
+    row.appendChild(del);
+
+    foodsDiv.appendChild(row);
+  }
+
+  function updateFoodOptions(select, keyword = "") {
+    select.innerHTML = "";
+    for (const food in foodMaster) {
+      if (!food.includes(keyword)) continue;
+      const option = document.createElement("option");
+      option.value = food;
+      option.textContent = food;
+      select.appendChild(option);
+    }
+  }
+
+  function toggleCustomFood() {
+    const area = document.getElementById("customFoodArea");
+    area.style.display =
+      area.style.display === "none" ? "block" : "none";
+  }
+
+  function addCustomFood() {
+    const name = document.getElementById("customName").value.trim();
+    const cal = Number(document.getElementById("customCal").value);
+    if (!name || cal <= 0) return alert("正しく入力してください");
+
+    foodMaster[name] = cal;
+    localStorage.setItem("foodMaster", JSON.stringify(foodMaster));
+    document.querySelectorAll("select")
+      .forEach(s => updateFoodOptions(s));
+
+    document.getElementById("customName").value = "";
+    document.getElementById("customCal").value = "";
+  }
+
+  function calculate() {
+    const total = Number(document.getElementById("totalCalories").value);
+    let used = 0;
+    document.querySelectorAll(".food-row").forEach(row => {
+      used += Number(row.children[3].value || 0);
+    });
+    document.getElementById("result").textContent =
+      Math.round(total - used);
+  }
+</script>
+
+</body>
+</html>
