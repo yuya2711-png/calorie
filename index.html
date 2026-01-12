@@ -33,7 +33,7 @@
 
     .food-row {
       display: grid;
-      grid-template-columns: 1.4fr 1fr 0.8fr 40px;
+      grid-template-columns: 1.4fr 1fr 0.8fr 0.6fr;
       gap: 6px;
       margin-bottom: 10px;
       align-items: center;
@@ -41,12 +41,10 @@
 
     .search-box {
       grid-column: 1 / -1;
-      font-size: 14px;
     }
 
     .cal-display {
       background: #eee;
-      font-size: 14px;
       text-align: right;
     }
 
@@ -60,11 +58,11 @@
     }
 
     .custom-food {
+      display: none;
       background: #f0f8ff;
       padding: 10px;
       border-radius: 6px;
       margin-top: 10px;
-      display: none;
     }
 
     .result {
@@ -73,28 +71,14 @@
       font-weight: bold;
     }
 
-    /* ✅ スマホ対応CSS（重要） */
+    /* 📱 スマホ対応 */
     @media (max-width: 600px) {
-      body {
-        padding: 10px;
-      }
-
       .food-row {
         grid-template-columns: 1fr;
       }
 
       input, select, button {
         height: 44px;
-        font-size: 16px;
-      }
-
-      .delete-btn {
-        width: 100%;
-        font-size: 18px;
-      }
-
-      .search-box {
-        font-size: 16px;
       }
     }
   </style>
@@ -110,24 +94,27 @@
   <h3>食事内容</h3>
   <div id="foods"></div>
 
-  <button onclick="addFood()">＋ 食材を追加</button>
-  <button onclick="toggleCustomFood()">食材がリストにない場合はこちら</button>
+  <!-- ✅ type="button" を必ず指定 -->
+  <button type="button" onclick="addFood()">＋ 食材を追加</button>
+  <button type="button" onclick="toggleCustomFood()">
+    食材がリストにない場合はこちら
+  </button>
 
   <div class="custom-food" id="customFoodArea">
     <h3>食材を追加</h3>
     <input type="text" id="customName" placeholder="食材名">
     <input type="number" id="customCal" placeholder="1gあたりのカロリー" step="0.01">
-    <button onclick="addCustomFood()">この食材を追加</button>
+    <button type="button" onclick="addCustomFood()">この食材を追加</button>
   </div>
 
-  <button onclick="calculate()">計算</button>
+  <button type="button" onclick="calculate()">計算</button>
 
   <div class="result">
     残りカロリー：<span id="result">0</span> kcal
   </div>
 </div>
 
-<!-- 食材マスター -->
+<!-- 食材データ -->
 <script src="foods.js"></script>
 
 <script>
@@ -160,6 +147,7 @@
     cal.disabled = true;
 
     const del = document.createElement("button");
+    del.type = "button"; // ← 重要
     del.textContent = "×";
     del.className = "delete-btn";
     del.onclick = () => row.remove();
@@ -173,12 +161,7 @@
         : "";
     };
 
-    row.appendChild(search);
-    row.appendChild(select);
-    row.appendChild(weight);
-    row.appendChild(cal);
-    row.appendChild(del);
-
+    row.append(search, select, weight, cal, del);
     foodsDiv.appendChild(row);
   }
 
@@ -195,14 +178,16 @@
 
   function toggleCustomFood() {
     const area = document.getElementById("customFoodArea");
-    area.style.display =
-      area.style.display === "none" ? "block" : "none";
+    area.style.display = area.style.display === "none" ? "block" : "none";
   }
 
   function addCustomFood() {
     const name = document.getElementById("customName").value.trim();
     const cal = Number(document.getElementById("customCal").value);
-    if (!name || cal <= 0) return alert("正しく入力してください");
+    if (!name || cal <= 0) {
+      alert("正しく入力してください");
+      return;
+    }
 
     foodMaster[name] = cal;
     localStorage.setItem("foodMaster", JSON.stringify(foodMaster));
