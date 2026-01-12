@@ -81,10 +81,12 @@
       margin-bottom: 6px;
     }
 
+    /* ★ 計算結果用 */
     .result {
-      margin-top: 15px;
+      margin: 6px 0 12px;
       font-size: 18px;
       font-weight: bold;
+      text-align: center;
     }
 
     @media (max-width: 600px) {
@@ -108,8 +110,13 @@
   <h3>食事内容</h3>
   <div id="foods"></div>
 
-  <!-- ✅ 計算ボタンをここに移動 -->
+  <!-- 計算ボタン -->
   <button type="button" onclick="calculate()">計算</button>
+
+  <!-- ★ 計算結果を直下に -->
+  <div class="result">
+    残りカロリー：<span id="result">0</span> kcal
+  </div>
 
   <button type="button" id="addFoodBtn">＋ 食材を追加</button>
 
@@ -127,10 +134,6 @@
   <div class="saved-foods">
     <h3>追加済み食材</h3>
     <div id="savedFoodList"></div>
-  </div>
-
-  <div class="result">
-    残りカロリー：<span id="result">0</span> kcal
   </div>
 </div>
 
