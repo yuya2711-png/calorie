@@ -4,12 +4,14 @@
   <meta charset="UTF-8">
   <title>カロリー計算機</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
   <style>
     body {
       font-family: sans-serif;
       background: #f5f5f5;
       padding: 20px;
     }
+
     .container {
       max-width: 600px;
       margin: auto;
@@ -17,31 +19,37 @@
       padding: 20px;
       border-radius: 8px;
     }
+
     input, select, button {
       padding: 10px;
       font-size: 16px;
       box-sizing: border-box;
     }
+
     button {
       width: 100%;
       margin: 5px 0;
     }
+
     .food-row {
       display: grid;
       grid-template-columns: 1.4fr 1fr 0.8fr 40px;
       gap: 6px;
-      margin-bottom: 6px;
+      margin-bottom: 10px;
       align-items: center;
     }
+
     .search-box {
       grid-column: 1 / -1;
       font-size: 14px;
     }
+
     .cal-display {
       background: #eee;
       font-size: 14px;
       text-align: right;
     }
+
     .delete-btn {
       background: #ff6666;
       color: #fff;
@@ -50,6 +58,7 @@
       font-weight: bold;
       cursor: pointer;
     }
+
     .custom-food {
       background: #f0f8ff;
       padding: 10px;
@@ -57,20 +66,46 @@
       margin-top: 10px;
       display: none;
     }
+
     .result {
       margin-top: 15px;
       font-size: 18px;
       font-weight: bold;
     }
+
+    /* ✅ スマホ対応CSS（重要） */
+    @media (max-width: 600px) {
+      body {
+        padding: 10px;
+      }
+
+      .food-row {
+        grid-template-columns: 1fr;
+      }
+
+      input, select, button {
+        height: 44px;
+        font-size: 16px;
+      }
+
+      .delete-btn {
+        width: 100%;
+        font-size: 18px;
+      }
+
+      .search-box {
+        font-size: 16px;
+      }
+    }
   </style>
 </head>
-<body>
 
+<body>
 <div class="container">
   <h2>カロリー計算機</h2>
 
   <label>一回の総カロリー</label>
-  <input type="number" id="totalCalories" value="150" style="width:100%">
+  <input type="number" id="totalCalories" value="150">
 
   <h3>食事内容</h3>
   <div id="foods"></div>
@@ -92,12 +127,10 @@
   </div>
 </div>
 
-<!-- ✅ ① foods.js を先に読み込む -->
+<!-- 食材マスター -->
 <script src="foods.js"></script>
 
-<!-- ✅ ② メインロジック -->
 <script>
-  // foods.js の defaultFoods を参照
   let foodMaster =
     JSON.parse(localStorage.getItem("foodMaster")) || { ...defaultFoods };
 
@@ -190,6 +223,5 @@
       Math.round(total - used);
   }
 </script>
-
 </body>
 </html>
