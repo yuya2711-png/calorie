@@ -30,7 +30,7 @@
       width: 100%;
       margin: 6px 0;
       position: relative;
-      z-index: 10; /* スマホ重なり対策 */
+      z-index: 10;
     }
 
     .food-row {
@@ -38,7 +38,6 @@
       grid-template-columns: 1.4fr 1fr 0.8fr 0.6fr;
       gap: 6px;
       margin-bottom: 10px;
-      align-items: center;
     }
 
     .search-box {
@@ -67,18 +66,31 @@
       margin-top: 10px;
     }
 
+    .saved-foods {
+      background: #fafafa;
+      border: 1px solid #ddd;
+      padding: 10px;
+      border-radius: 6px;
+      margin-top: 10px;
+    }
+
+    .saved-food-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
     .result {
       margin-top: 15px;
       font-size: 18px;
       font-weight: bold;
     }
 
-    /* 📱 スマホ対応 */
     @media (max-width: 600px) {
       .food-row {
         grid-template-columns: 1fr;
       }
-
       input, select, button {
         height: 44px;
       }
@@ -96,7 +108,9 @@
   <h3>食事内容</h3>
   <div id="foods"></div>
 
-  <!-- ★ type="button" 必須 -->
+  <!-- ✅ 計算ボタンをここに移動 -->
+  <button type="button" onclick="calculate()">計算</button>
+
   <button type="button" id="addFoodBtn">＋ 食材を追加</button>
 
   <button type="button" onclick="toggleCustomFood()">
@@ -110,25 +124,25 @@
     <button type="button" onclick="addCustomFood()">この食材を追加</button>
   </div>
 
-  <button type="button" onclick="calculate()">計算</button>
+  <div class="saved-foods">
+    <h3>追加済み食材</h3>
+    <div id="savedFoodList"></div>
+  </div>
 
   <div class="result">
     残りカロリー：<span id="result">0</span> kcal
   </div>
 </div>
 
-<!-- ★ food.js を正しく読み込む -->
 <script src="food.js"></script>
 
 <script>
-  // 食材マスター（localStorage + デフォルト）
   let foodMaster =
     JSON.parse(localStorage.getItem("foodMaster")) || { ...defaultFoods };
 
-  // 初期表示（これが GitHub Pages で出なかった原因）
   addFood();
+  renderSavedFoods();
 
-  // iOS Safari 対策（click + touch）
   const addBtn = document.getElementById("addFoodBtn");
   addBtn.addEventListener("click", addFood);
   addBtn.addEventListener("touchstart", addFood);
@@ -139,7 +153,6 @@
     row.className = "food-row";
 
     const search = document.createElement("input");
-    search.type = "text";
     search.placeholder = "食材検索";
     search.className = "search-box";
 
@@ -151,10 +164,8 @@
     weight.placeholder = "量(g)";
 
     const cal = document.createElement("input");
-    cal.type = "number";
-    cal.placeholder = "kcal";
-    cal.className = "cal-display";
     cal.disabled = true;
+    cal.className = "cal-display";
 
     const del = document.createElement("button");
     del.type = "button";
@@ -165,9 +176,8 @@
     search.oninput = () => updateFoodOptions(select, search.value);
 
     weight.oninput = () => {
-      const gram = Number(weight.value);
-      cal.value = gram > 0
-        ? Math.round(foodMaster[select.value] * gram)
+      cal.value = weight.value
+        ? Math.round(foodMaster[select.value] * weight.value)
         : "";
     };
 
@@ -177,13 +187,13 @@
 
   function updateFoodOptions(select, keyword = "") {
     select.innerHTML = "";
-    for (const food in foodMaster) {
-      if (!food.includes(keyword)) continue;
+    Object.keys(foodMaster).forEach(food => {
+      if (!food.includes(keyword)) return;
       const option = document.createElement("option");
       option.value = food;
       option.textContent = food;
       select.appendChild(option);
-    }
+    });
   }
 
   function toggleCustomFood() {
@@ -192,30 +202,56 @@
   }
 
   function addCustomFood() {
-    const name = document.getElementById("customName").value.trim();
-    const cal = Number(document.getElementById("customCal").value);
-    if (!name || cal <= 0) {
-      alert("正しく入力してください");
-      return;
-    }
+    const name = customName.value.trim();
+    const cal = Number(customCal.value);
+    if (!name || cal <= 0) return alert("正しく入力してください");
 
     foodMaster[name] = cal;
     localStorage.setItem("foodMaster", JSON.stringify(foodMaster));
-    document.querySelectorAll("select")
-      .forEach(s => updateFoodOptions(s));
+    renderSavedFoods();
+    document.querySelectorAll("select").forEach(s => updateFoodOptions(s));
+    customName.value = "";
+    customCal.value = "";
+  }
 
-    document.getElementById("customName").value = "";
-    document.getElementById("customCal").value = "";
+  function renderSavedFoods() {
+    const list = document.getElementById("savedFoodList");
+    list.innerHTML = "";
+
+    Object.keys(foodMaster).forEach(food => {
+      if (defaultFoods[food]) return;
+
+      const div = document.createElement("div");
+      div.className = "saved-food-item";
+
+      const span = document.createElement("span");
+      span.textContent = `${food} (${foodMaster[food]} kcal/g)`;
+
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = "削除";
+      btn.onclick = () => removeCustomFood(food);
+
+      div.append(span, btn);
+      list.appendChild(div);
+    });
+  }
+
+  function removeCustomFood(food) {
+    if (!confirm(`${food} を削除しますか？`)) return;
+    delete foodMaster[food];
+    localStorage.setItem("foodMaster", JSON.stringify(foodMaster));
+    renderSavedFoods();
+    document.querySelectorAll("select").forEach(s => updateFoodOptions(s));
   }
 
   function calculate() {
-    const total = Number(document.getElementById("totalCalories").value);
+    const total = Number(totalCalories.value);
     let used = 0;
     document.querySelectorAll(".food-row").forEach(row => {
       used += Number(row.children[3].value || 0);
     });
-    document.getElementById("result").textContent =
-      Math.round(total - used);
+    result.textContent = Math.round(total - used);
   }
 </script>
 </body>
