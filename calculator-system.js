@@ -19,7 +19,8 @@ function addFood() {
   gram.placeholder = "g";
 
   const cal = document.createElement("input");
-  cal.disabled = true;
+  //cal.disabled = true;
+  cal.placeholder = "cal"
   cal.className = "cal-display";
 
   const del = document.createElement("button");
@@ -30,6 +31,12 @@ function addFood() {
   gram.oninput = () => {
     cal.value = gram.value
       ? Math.round(gram.value * foodMaster[select.value])
+      : "";
+  };
+
+    cal.oninput = () => {
+    gram.value = cal.value
+      ? Math.round(cal.value / foodMaster[select.value])
       : "";
   };
 
