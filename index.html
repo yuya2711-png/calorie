@@ -122,6 +122,20 @@
   <div id="savedFoodList"></div>
 </div>
 
+<script>
+  // カロリー計算に使う値をページ更新毎に更新する
+  const input = document.getElementById("totalCalories");
+  const defaultValue = "150";
+
+  // 保存されてる値を取得（なければデフォルト）
+  input.value = localStorage.getItem("totalCalories") ?? defaultValue;
+
+  // 入力が変わるたびに保存
+  input.addEventListener("input", () => {
+    localStorage.setItem("totalCalories", input.value);
+  });
+</script>
+
 <script src="food.js"></script>
 
 <script>
